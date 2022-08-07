@@ -4,6 +4,7 @@ using DohrniiBackoffice.DTO.Request;
 using DohrniiBackoffice.DTO.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Transactions;
 
 namespace DohrniiBackoffice.Controllers
 {
@@ -23,12 +24,13 @@ namespace DohrniiBackoffice.Controllers
         private readonly IClassQuestionRepository _classQuestionRepository;
         private readonly IClassQuestionAnswerRepository _classQuestionAnswerRepository;
         private readonly IQuestionAttemptRepository _questionAttemptRepository;
+        private readonly IEarningActivityRepository _earningActivityRepository;
 
 
         public LessonsController(ICategoryRepository categoryRepository, ILessonRepository lessonRepository, ILessonClassRepository lessonClassRepository, 
             ILessonActivityRepository lessonActivityRepository, ILessonClassActivityRepository lessonClassActivityRepository, IChapterRepository chapterRepository,
             IQuizUnlockActivityRepository quizUnlockActivityRepository, IChapterActivityRepository chapterActivityRepository, IClassQuestionRepository classQuestionRepository,
-            IClassQuestionAnswerRepository classQuestionAnswerRepository, IQuestionAttemptRepository questionAttemptRepository)
+            IClassQuestionAnswerRepository classQuestionAnswerRepository, IQuestionAttemptRepository questionAttemptRepository, IEarningActivityRepository earningActivityRepository)
         {
             _categoryRepository = categoryRepository;
             _lessonRepository = lessonRepository;
@@ -41,6 +43,7 @@ namespace DohrniiBackoffice.Controllers
             _classQuestionRepository = classQuestionRepository;
             _classQuestionAnswerRepository = classQuestionAnswerRepository;
             _questionAttemptRepository = questionAttemptRepository;
+            _earningActivityRepository = earningActivityRepository;
         }
 
         [HttpPost("start")]
@@ -51,59 +54,64 @@ namespace DohrniiBackoffice.Controllers
                 var user = GetUser();
                 if(user != null)
                 {
-                    var lessonActivity = _lessonActivityRepository.FindBy(c => c.Id == dto.Id && c.UserId == user.Id).FirstOrDefault();
+                    var lessonActivity = _lessonActivityRepository.FindBy(c => c.LessonId == dto.Id && c.UserId == user.Id).FirstOrDefault();
                     if(lessonActivity == null)
                     {
                         var lesson = _lessonRepository.FindBy(c => c.Id == dto.Id).FirstOrDefault();
-                        if(lesson != null)
+                        if (lesson != null)
                         {
-                            var chapter = _chapterActivityRepository.FindBy(c => c.Id == lesson.ChapterId && c.UserId == user.Id).FirstOrDefault();
-                            if(chapter == null)
+                            using (TransactionScope scope = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled))
                             {
-                                var chapterActivity = new ChapterActivity
+                                var chapter = _chapterActivityRepository.FindBy(c => c.Id == lesson.ChapterId && c.UserId == user.Id).FirstOrDefault();
+                                if (chapter == null)
                                 {
-                                    ChapterId = lesson.ChapterId,
-                                    CategoryId = lesson.Chapter.CategoryId,
-                                    UserId = user.Id,
-                                    DateStarted = DateTime.UtcNow,
-                                    DateCompleted = DateTime.UtcNow,
-                                    IsCompleted = false
-                                };
-                                _chapterActivityRepository.Add(chapterActivity);
-                                await _chapterActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
-                            }
-                            var lessonActivityObj = new LessonActivity
-                            {
-                                ChapterId = lesson.ChapterId,
-                                CategoryId = lesson.Chapter.CategoryId,
-                                LessonId = dto.Id,
-                                UserId = user.Id,
-                                DateStarted = DateTime.UtcNow,
-                                DateCompleted = DateTime.UtcNow,
-                                IsCompleted = false
-                            };
-                            _lessonActivityRepository.Add(lessonActivityObj);
-                            await _lessonActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
-
-                            if (lesson.LessonClasses.Count > 0)
-                            {
-                                var mclass = lesson.LessonClasses.FirstOrDefault();
-                                if(mclass != null)
-                                {
-                                    var classActivityObj = new LessonClassActivity
+                                    var chapterActivity = new ChapterActivity
                                     {
                                         ChapterId = lesson.ChapterId,
                                         CategoryId = lesson.Chapter.CategoryId,
-                                        LessonId = dto.Id,
-                                        LessonClassId = mclass.Id,
                                         UserId = user.Id,
                                         DateStarted = DateTime.UtcNow,
                                         DateCompleted = DateTime.UtcNow,
                                         IsCompleted = false
                                     };
-                                    _lessonClassActivityRepository.Add(classActivityObj);
-                                    await _lessonClassActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
+                                    _chapterActivityRepository.Add(chapterActivity);
+                                    await _chapterActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
                                 }
+                                var lessonActivityObj = new LessonActivity
+                                {
+                                    ChapterId = lesson.ChapterId,
+                                    CategoryId = lesson.Chapter.CategoryId,
+                                    LessonId = dto.Id,
+                                    UserId = user.Id,
+                                    DateStarted = DateTime.UtcNow,
+                                    DateCompleted = DateTime.UtcNow,
+                                    IsCompleted = false
+                                };
+                                _lessonActivityRepository.Add(lessonActivityObj);
+                                await _lessonActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
+
+                                if (lesson.LessonClasses.Count > 0)
+                                {
+                                    var mclass = lesson.LessonClasses.FirstOrDefault();
+                                    if (mclass != null)
+                                    {
+                                        var classActivityObj = new LessonClassActivity
+                                        {
+                                            ChapterId = lesson.ChapterId,
+                                            CategoryId = lesson.Chapter.CategoryId,
+                                            LessonId = dto.Id,
+                                            LessonClassId = mclass.Id,
+                                            UserId = user.Id,
+                                            DateStarted = DateTime.UtcNow,
+                                            DateCompleted = DateTime.UtcNow,
+                                            IsCompleted = false
+                                        };
+                                        _lessonClassActivityRepository.Add(classActivityObj);
+                                        await _lessonClassActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
+                                    }
+                                }
+
+                                scope.Complete();
                             }
                             
                             return Ok(new StartResponseDTO { IsStarted = true, Id = dto.Id, Name = lesson.Title });
@@ -139,7 +147,28 @@ namespace DohrniiBackoffice.Controllers
                         lessonActivity.DateCompleted = DateTime.UtcNow;
                         _lessonActivityRepository.Edit(lessonActivity);
                         await _lessonActivityRepository.Save(user.Email, _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
-                        return Ok(new CompleteResponseDTO { IsStarted = true, Id = dto.Id });
+
+                        var resp = new CompleteResponseDTO();
+                        resp.IsCompleted = true;
+                        resp.Id = dto.Id;
+                        resp.Name = _lessonRepository.FindBy(c => c.Id == dto.Id).FirstOrDefault()?.Name;
+                        var earnings = _earningActivityRepository.FindBy(c => c.UserId == user.Id && c.LessonId == dto.Id).ToList();
+                        resp.TotalXpEarned = earnings.Sum(c => c.Xp);
+                        resp.TotalJellyEarned = earnings.Sum(c => c.Jelly);
+                        resp.TotalDhnEarned = earnings.Sum(c => c.Dhn);
+
+                        var totalClasses = 0;
+                        var lessons = _lessonRepository.FindBy(c => c.ChapterId == lessonActivity.ChapterId);
+                        foreach (var item in lessons)
+                        {
+                            totalClasses += item.LessonClasses.Count;
+                        }
+                        var completedClasses = _lessonClassActivityRepository.FindBy(c => c.UserId == user.Id && c.IsCompleted == true && c.ChapterId==lessonActivity.ChapterId).ToList();
+                        var percentage = (completedClasses.Count / totalClasses) * 100.0;
+                        resp.PercentageComplete = Math.Round(percentage, MidpointRounding.AwayFromZero);
+
+
+                        return Ok(resp);
                     }
                     return NotFound(new ErrorResponse { Details = "Record not found!" });
                 }
@@ -155,37 +184,37 @@ namespace DohrniiBackoffice.Controllers
             }
         }
 
-        [HttpGet("class/{Id:int}/questions")]
-        [Produces(typeof(List<ClassQuestionDTO>))]
-        public IActionResult GetQuestions(int Id)
+        [HttpGet("{Id:int}/progress")]
+        [Produces(typeof(CompleteResponseDTO))]
+        public IActionResult GetLessonProgress(int Id)
         {
-            try
+            var user = GetUser();
+            if(user != null)
             {
-                var user = GetUser();
-                if (user != null)
+                var lesson = _lessonRepository.FindBy(c => c.Id == Id).FirstOrDefault();
+                if (lesson != null)
                 {
-                    var options = new List<ClassQuestionDTO>();
-                    var qtns = _classQuestionRepository.FindBy(c => c.LessonClassId == Id);
-                    options = _mapper.Map<List<ClassQuestionDTO>>(qtns);
-                    foreach (var item in options)
-                    {
-                        item.Options = _mapper.Map<List<ClassQuestionOptionDTO>>(_classQuestionAnswerRepository.FindBy(c => c.ClassQuestionId == item.Id).ToList());
-                        item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_questionAttemptRepository.FindBy(c => c.QuestionId == item.Id).ToList());
-                        item.IsAttempted = item.Attempts.Count > 0;
-                    }
-                     
-                    return Ok(options);
+                    var lessonActivity = _lessonActivityRepository.FindBy(c => c.UserId == user.Id && c.LessonId == Id).FirstOrDefault();
+                    var resp = new CompleteResponseDTO();
+                    resp.IsCompleted = lessonActivity == null ? false : lessonActivity.IsCompleted;
+                    resp.Id = Id;
+                    resp.Name = lesson.Name;
+                    var earnings = _earningActivityRepository.FindBy(c => c.UserId == user.Id && c.ClassId == Id).ToList();
+                    resp.TotalXpEarned = earnings.Sum(c => c.Xp);
+                    resp.TotalJellyEarned = earnings.Sum(c => c.Jelly);
+                    resp.TotalDhnEarned = earnings.Sum(c => c.Dhn);
+
+                    //var totalClasses = _lessonClassRepository.FindBy(c => c.LessonId == classActivity.LessonId).ToList();
+                    //var completedClasses = _lessonClassActivityRepository.FindBy(c => c.UserId == user.Id && c.IsCompleted == true && c.LessonId == classActivity.LessonId).ToList();
+                    //var percentage = (completedClasses.Count / totalClasses.Count) * 100.0;
+                    //resp.PercentageComplete = Math.Round(percentage, MidpointRounding.AwayFromZero);
+
+
+                    return Ok(resp);
                 }
-                else
-                {
-                    return NotFound(new ErrorResponse { Details = "User not found!" });
-                }
+                return NotFound(new ErrorResponse { Details = "Record not found!" });
             }
-            catch (Exception ex)
-            {
-                _Logger.LogError(ex.Message);
-                return InternalServerError(new ErrorResponse { Details = ex.Message });
-            }
+            return NotFound(new ErrorResponse { Details = "We can't find your account!" });
         }
     }
 }
