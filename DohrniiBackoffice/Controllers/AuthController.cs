@@ -74,7 +74,8 @@ namespace DohrniiBackoffice.Controllers
                         email.Code = code;
                         _emailVerificationRepository.Edit(email);
                         await _emailVerificationRepository.Save("System", _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
-                        var emailTemplate = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name = dto.Email, Code = code });
+                        //var emailTemplate = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name = dto.Email, Code = code });
+                        var emailTemplate = AuthConstants.HtmlWelcomeTemplate.Replace("{{cod}}", code);
                         var emailObj = new MailData(new List<string> { dto.Email }, "Welcome To Dohrnii Academy", emailTemplate);
                         await _mailHelper.SendAsync(emailObj, new CancellationToken());
                         return Ok(dto);
