@@ -239,9 +239,7 @@ namespace DohrniiBackoffice.Helpers
         public string LoadTemplate(string emailTemplate)
         {
             var webPath = _hostingEnvironment.ContentRootPath;
-            var path = Path.Combine("", webPath + @"\EmailTemplates");
-            //string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            //string templateDir = Path.Combine(baseDir, "EmailTemplates");
+            var path = Path.Combine("", webPath + @"\wwwroot\EmailTemplates");
             string templatePath = Path.Combine(path, $"{emailTemplate}.cshtml");
 
             using FileStream fileStream = new FileStream(templatePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
