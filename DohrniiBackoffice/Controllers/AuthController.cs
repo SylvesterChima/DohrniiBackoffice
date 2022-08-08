@@ -75,7 +75,7 @@ namespace DohrniiBackoffice.Controllers
                         _emailVerificationRepository.Edit(email);
                         await _emailVerificationRepository.Save("System", _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
                         //var emailTemplate = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name = dto.Email, Code = code });
-                        var emailTemplate = AuthConstants.HtmlWelcomeTemplate.Replace("{{cod}}", code);
+                        var emailTemplate = AuthConstants.HtmlWelcomeTemplate.Replace("{{code}}", code);
                         var emailObj = new MailData(new List<string> { dto.Email }, "Welcome To Dohrnii Academy", emailTemplate);
                         await _mailHelper.SendAsync(emailObj, new CancellationToken());
                         return Ok(dto);
@@ -94,7 +94,7 @@ namespace DohrniiBackoffice.Controllers
                     await _emailVerificationRepository.Save("System", _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
                     //var template = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name= dto.Email, Code = code });
 
-                    var template = AuthConstants.HtmlWelcomeTemplate.Replace("{{cod}}", code);
+                    var template = AuthConstants.HtmlWelcomeTemplate.Replace("{{code}}", code);
                     
                     var emailData = new MailData(new List<string> { dto.Email }, "Welcome To Dohrnii Academy", template);
                     await _mailHelper.SendAsync(emailData, new CancellationToken());
