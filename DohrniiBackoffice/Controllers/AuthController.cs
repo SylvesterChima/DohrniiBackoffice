@@ -60,10 +60,6 @@ namespace DohrniiBackoffice.Controllers
         {
             try
             {
-
-                var d = @""
-
-
                 if (_app.IsValidEmailAddress(dto.Email))
                 {
                     Random generator = new Random();
