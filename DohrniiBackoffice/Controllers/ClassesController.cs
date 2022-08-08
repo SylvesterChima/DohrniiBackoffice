@@ -211,7 +211,7 @@ namespace DohrniiBackoffice.Controllers
                     foreach (var item in options)
                     {
                         item.Options = _mapper.Map<List<ClassQuestionOptionDTO>>(_classQuestionAnswerRepository.FindBy(c => c.ClassQuestionId == item.Id).ToList());
-                        item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_questionAttemptRepository.FindBy(c => c.QuestionId == item.Id).ToList());
+                        item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_questionAttemptRepository.FindBy(c => c.QuestionId == item.Id && c.UserId == user.Id).ToList());
                         item.IsAttempted = item.Attempts.Count > 0;
                     }
 
