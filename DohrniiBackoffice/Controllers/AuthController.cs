@@ -60,6 +60,10 @@ namespace DohrniiBackoffice.Controllers
         {
             try
             {
+
+                var d = @""
+
+
                 if (_app.IsValidEmailAddress(dto.Email))
                 {
                     Random generator = new Random();
@@ -91,7 +95,10 @@ namespace DohrniiBackoffice.Controllers
                     };
                     _emailVerificationRepository.Add(obj);
                     await _emailVerificationRepository.Save("System", _accessor.ActionContext.HttpContext.Connection.RemoteIpAddress.ToString());
-                    var template = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name= dto.Email, Code = code });
+                    //var template = _mailHelper.GetEmailTemplate("Welcome", new WelcomeMail { Email = dto.Email, Name= dto.Email, Code = code });
+
+                    var template = AuthConstants.HtmlWelcomeTemplate.Replace("{{cod}}", code);
+                    
                     var emailData = new MailData(new List<string> { dto.Email }, "Welcome To Dohrnii Academy", template);
                     await _mailHelper.SendAsync(emailData, new CancellationToken());
                     return Ok(dto);
