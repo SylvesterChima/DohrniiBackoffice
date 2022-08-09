@@ -95,7 +95,7 @@ namespace DohrniiBackoffice.Controllers
                 var user = GetUser();
                 if (user != null)
                 {
-                    var classActivity = _lessonClassActivityRepository.FindBy(c => c.Id == dto.Id).FirstOrDefault();
+                    var classActivity = _lessonClassActivityRepository.FindBy(c => c.LessonClassId == dto.Id && c.UserId==user.Id).FirstOrDefault();
                     if (classActivity != null)
                     {
                         classActivity.IsCompleted = true;
