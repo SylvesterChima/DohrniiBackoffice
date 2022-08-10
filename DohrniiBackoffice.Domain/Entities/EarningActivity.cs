@@ -24,12 +24,6 @@ namespace DohrniiBackoffice.Domain.Entities
         [Column(TypeName = "datetime")]
         public DateTime DateAdded { get; set; }
 
-        [ForeignKey("CategoryId")]
-        [InverseProperty("EarningActivities")]
-        public virtual Category Category { get; set; } = null!;
-        [ForeignKey("ChapterId")]
-        [InverseProperty("EarningActivities")]
-        public virtual Chapter Chapter { get; set; } = null!;
         [ForeignKey("UserId")]
         [InverseProperty("EarningActivities")]
         public virtual User User { get; set; } = null!;

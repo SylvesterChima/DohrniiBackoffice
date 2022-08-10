@@ -145,18 +145,6 @@ namespace DohrniiBackoffice.Domain.Entities
 
             modelBuilder.Entity<EarningActivity>(entity =>
             {
-                entity.HasOne(d => d.Category)
-                    .WithMany(p => p.EarningActivities)
-                    .HasForeignKey(d => d.CategoryId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EarningActivity_Category");
-
-                entity.HasOne(d => d.Chapter)
-                    .WithMany(p => p.EarningActivities)
-                    .HasForeignKey(d => d.ChapterId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_EarningActivity_Chapter");
-
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.EarningActivities)
                     .HasForeignKey(d => d.UserId)

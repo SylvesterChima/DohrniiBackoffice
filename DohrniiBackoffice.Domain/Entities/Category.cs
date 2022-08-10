@@ -13,7 +13,6 @@ namespace DohrniiBackoffice.Domain.Entities
         {
             ChapterActivities = new HashSet<ChapterActivity>();
             Chapters = new HashSet<Chapter>();
-            EarningActivities = new HashSet<EarningActivity>();
             LessonActivities = new HashSet<LessonActivity>();
             LessonClassActivities = new HashSet<LessonClassActivity>();
         }
@@ -33,8 +32,6 @@ namespace DohrniiBackoffice.Domain.Entities
         public virtual ICollection<ChapterActivity> ChapterActivities { get; set; }
         [InverseProperty("Category")]
         public virtual ICollection<Chapter> Chapters { get; set; }
-        [InverseProperty("Category")]
-        public virtual ICollection<EarningActivity> EarningActivities { get; set; }
         [InverseProperty("Category")]
         public virtual ICollection<LessonActivity> LessonActivities { get; set; }
         [InverseProperty("Category")]

@@ -14,5 +14,6 @@
         public int TotalXp { get; set; }
         public int TotalJelly { get; set; }
         public decimal TotalDhn { get; set; }
+        public int XpPerCryptojelly { get; set; }
     }
 }
