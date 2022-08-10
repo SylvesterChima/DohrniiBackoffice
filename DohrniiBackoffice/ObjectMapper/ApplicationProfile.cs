@@ -22,6 +22,8 @@ namespace DohrniiBackoffice.ObjectMapper
             CreateMap<ClassQuestion, ClassQuestionDTO>().ReverseMap();
             CreateMap<ClassQuestionAnswer, ClassQuestionOptionDTO>().ReverseMap();
             CreateMap<QuestionAttempt, ClassQuestionAttemptDTO>().ReverseMap();
+            CreateMap<VQuestion, ChapterQuestionDTO>().ReverseMap();
+            CreateMap<QuizAttempt, ClassQuestionAttemptDTO>().ReverseMap();
         }
     }
 }

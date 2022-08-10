@@ -2,6 +2,7 @@
 using DohrniiBackoffice.DTO.Response;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace DohrniiBackoffice.Controllers
 {
@@ -19,9 +20,17 @@ namespace DohrniiBackoffice.Controllers
         private readonly IQuizUnlockActivityRepository _quizUnlockActivityRepository;
         private readonly IChapterActivityRepository _chapterActivityRepository;
         private readonly IEarningActivityRepository _earningActivityRepository;
+        private readonly IvQuestionRepository _vQuestionRepository;
+        private readonly IClassQuestionAnswerRepository _classQuestionAnswerRepository;
+        private readonly IQuizAttemptRepository _quizAttemptRepository;
 
 
-        public ChaptersController(ICategoryRepository categoryRepository, ILessonRepository lessonRepository, ILessonClassRepository lessonClassRepository, ILessonActivityRepository lessonActivityRepository, ILessonClassActivityRepository lessonClassActivityRepository, IChapterRepository chapterRepository, IQuizUnlockActivityRepository quizUnlockActivityRepository, IChapterActivityRepository chapterActivityRepository, IEarningActivityRepository earningActivityRepository)
+        public ChaptersController(ICategoryRepository categoryRepository, ILessonRepository lessonRepository, 
+            ILessonClassRepository lessonClassRepository, ILessonActivityRepository lessonActivityRepository,
+            ILessonClassActivityRepository lessonClassActivityRepository, IChapterRepository chapterRepository,
+            IQuizUnlockActivityRepository quizUnlockActivityRepository, IChapterActivityRepository chapterActivityRepository,
+            IEarningActivityRepository earningActivityRepository, IvQuestionRepository vQuestionRepository,
+            IClassQuestionAnswerRepository classQuestionAnswerRepository, IQuizAttemptRepository quizAttemptRepository)
         {
             _categoryRepository = categoryRepository;
             _lessonRepository = lessonRepository;
@@ -32,6 +41,9 @@ namespace DohrniiBackoffice.Controllers
             _quizUnlockActivityRepository = quizUnlockActivityRepository;
             _chapterActivityRepository = chapterActivityRepository;
             _earningActivityRepository = earningActivityRepository;
+            _vQuestionRepository = vQuestionRepository;
+            _classQuestionAnswerRepository = classQuestionAnswerRepository;
+            _quizAttemptRepository = quizAttemptRepository;
         }
 
 
@@ -96,6 +108,41 @@ namespace DohrniiBackoffice.Controllers
                     return NotFound(new ErrorResponse { Details = "We can't find your account!" });
                 }
 
+            }
+            catch (Exception ex)
+            {
+                _Logger.LogError(ex.Message);
+                return InternalServerError(new ErrorResponse { Details = ex.Message });
+            }
+        }
+
+        [HttpGet("{Id:int}/quiz")]
+        [Produces(typeof(List<ChapterQuestionDTO>))]
+        public IActionResult GetQuestions(int Id)
+        {
+            try
+            {
+                var user = GetUser();
+                if (user != null)
+                {
+                    var chapter = _chapterRepository.FindBy(c=>c.Id == Id).FirstOrDefault();
+                    if(chapter != null)
+                    {
+                        var options = new List<ChapterQuestionDTO>();
+                        var qtns = _vQuestionRepository.FindBy(c => c.ChapterId == Id).OrderBy(r => Guid.NewGuid()).Take(chapter.QuestionLimit);
+                        options = _mapper.Map<List<ChapterQuestionDTO>>(qtns);
+                        foreach (var item in options)
+                        {
+                            item.Options = _mapper.Map<List<ClassQuestionOptionDTO>>(_classQuestionAnswerRepository.FindBy(c => c.ClassQuestionId == item.Id).ToList());
+                            item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_quizAttemptRepository.FindBy(c => c.QuestionId == item.Id && c.UserId == user.Id).ToList());
+                            item.IsAttempted = item.Attempts.Count > 0;
+                        }
+
+                        return Ok(options);
+                    }
+                    return NotFound(new ErrorResponse { Details = "Chapter not found!" });
+                }
+                return NotFound(new ErrorResponse { Details = "User not found!" });
             }
             catch (Exception ex)
             {

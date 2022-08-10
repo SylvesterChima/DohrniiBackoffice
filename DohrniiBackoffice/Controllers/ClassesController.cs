@@ -25,8 +25,15 @@ namespace DohrniiBackoffice.Controllers
         private readonly IClassQuestionAnswerRepository _classQuestionAnswerRepository;
         private readonly IQuestionAttemptRepository _questionAttemptRepository;
         private readonly IEarningActivityRepository _earningActivityRepository;
+        private readonly IvQuestionRepository _vQuestionRepository;
 
-        public ClassesController(ICategoryRepository categoryRepository, ILessonRepository lessonRepository, ILessonClassRepository lessonClassRepository, ILessonActivityRepository lessonActivityRepository, ILessonClassActivityRepository lessonClassActivityRepository, IChapterRepository chapterRepository, IQuizUnlockActivityRepository quizUnlockActivityRepository, IChapterActivityRepository chapterActivityRepository, IClassQuestionRepository classQuestionRepository, IClassQuestionAnswerRepository classQuestionAnswerRepository, IQuestionAttemptRepository questionAttemptRepository, IEarningActivityRepository earningActivityRepository)
+        public ClassesController(ICategoryRepository categoryRepository, ILessonRepository lessonRepository, 
+            ILessonClassRepository lessonClassRepository, ILessonActivityRepository lessonActivityRepository, 
+            ILessonClassActivityRepository lessonClassActivityRepository, IChapterRepository chapterRepository, 
+            IQuizUnlockActivityRepository quizUnlockActivityRepository, IChapterActivityRepository chapterActivityRepository, 
+            IClassQuestionRepository classQuestionRepository, IClassQuestionAnswerRepository classQuestionAnswerRepository, 
+            IQuestionAttemptRepository questionAttemptRepository, IEarningActivityRepository earningActivityRepository, 
+            IvQuestionRepository vQuestionRepository)
         {
             _categoryRepository = categoryRepository;
             _lessonRepository = lessonRepository;
@@ -40,9 +47,11 @@ namespace DohrniiBackoffice.Controllers
             _classQuestionAnswerRepository = classQuestionAnswerRepository;
             _questionAttemptRepository = questionAttemptRepository;
             _earningActivityRepository = earningActivityRepository;
+            _vQuestionRepository = vQuestionRepository;
         }
 
         [HttpPost("start")]
+        [Produces(typeof(StartResponseDTO))]
         public async Task<IActionResult> StartClass([FromBody] StartDTO dto)
         {
             try
@@ -88,6 +97,7 @@ namespace DohrniiBackoffice.Controllers
         }
 
         [HttpPut("complete")]
+        [Produces(typeof(CompleteResponseDTO))]
         public async Task<IActionResult> CompleteClass([FromBody] CompleteDTO dto)
         {
             try
@@ -135,6 +145,7 @@ namespace DohrniiBackoffice.Controllers
         }
 
         [HttpPost("questionattempt")]
+        [Produces(typeof(QuestionAttemptRespDTO))]
         public async Task<IActionResult> QuestionAttempt([FromBody] QuestionAttemptDTO dto)
         {
             try
@@ -205,22 +216,24 @@ namespace DohrniiBackoffice.Controllers
                 var user = GetUser();
                 if (user != null)
                 {
-                    var options = new List<ClassQuestionDTO>();
-                    var qtns = _classQuestionRepository.FindBy(c => c.LessonClassId == Id);
-                    options = _mapper.Map<List<ClassQuestionDTO>>(qtns);
-                    foreach (var item in options)
+                    var mclass = _lessonClassRepository.FindBy(c=>c.Id == Id).FirstOrDefault();
+                    if(mclass != null)
                     {
-                        item.Options = _mapper.Map<List<ClassQuestionOptionDTO>>(_classQuestionAnswerRepository.FindBy(c => c.ClassQuestionId == item.Id).ToList());
-                        item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_questionAttemptRepository.FindBy(c => c.QuestionId == item.Id && c.UserId == user.Id).ToList());
-                        item.IsAttempted = item.Attempts.Count > 0;
-                    }
+                        var options = new List<ClassQuestionDTO>();
+                        var qtns = _classQuestionRepository.FindBy(c => c.LessonClassId == Id).OrderBy(r => Guid.NewGuid()).Take(mclass.QuestionLimit);
+                        options = _mapper.Map<List<ClassQuestionDTO>>(qtns);
+                        foreach (var item in options)
+                        {
+                            item.Options = _mapper.Map<List<ClassQuestionOptionDTO>>(_classQuestionAnswerRepository.FindBy(c => c.ClassQuestionId == item.Id).ToList());
+                            item.Attempts = _mapper.Map<List<ClassQuestionAttemptDTO>>(_questionAttemptRepository.FindBy(c => c.QuestionId == item.Id && c.UserId == user.Id).ToList());
+                            item.IsAttempted = item.Attempts.Count > 0;
+                        }
 
-                    return Ok(options);
+                        return Ok(options);
+                    }
+                    return NotFound(new ErrorResponse { Details = "Class not found!" });
                 }
-                else
-                {
-                    return NotFound(new ErrorResponse { Details = "User not found!" });
-                }
+                return NotFound(new ErrorResponse { Details = "User not found!" });
             }
             catch (Exception ex)
             {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace DohrniiBackoffice.Domain.Abstract
 {
-    public interface IChapterQuizRepository : IGenericRepository<ChapterQuiz>
+    public interface IvQuestionRepository : IGenericRepository<VQuestion>
     {
     }
 }

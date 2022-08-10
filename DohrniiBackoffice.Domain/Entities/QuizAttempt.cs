@@ -11,8 +11,8 @@ namespace DohrniiBackoffice.Domain.Entities
     {
         [Key]
         public int Id { get; set; }
-        public int QuizId { get; set; }
-        public int SelectedQuizAnswerId { get; set; }
+        public int QuestionId { get; set; }
+        public int SelectedAnswerId { get; set; }
         public int UserId { get; set; }
         public bool IsCorrect { get; set; }
         [Column("XPCollected")]
@@ -20,12 +20,12 @@ namespace DohrniiBackoffice.Domain.Entities
         [Column(TypeName = "datetime")]
         public DateTime? DateAttempt { get; set; }
 
-        [ForeignKey("QuizId")]
+        [ForeignKey("QuestionId")]
         [InverseProperty("QuizAttempts")]
-        public virtual ChapterQuiz Quiz { get; set; } = null!;
-        [ForeignKey("SelectedQuizAnswerId")]
+        public virtual ClassQuestion Question { get; set; } = null!;
+        [ForeignKey("SelectedAnswerId")]
         [InverseProperty("QuizAttempts")]
-        public virtual QuizAnswer SelectedQuizAnswer { get; set; } = null!;
+        public virtual ClassQuestionAnswer SelectedAnswer { get; set; } = null!;
         [ForeignKey("UserId")]
         [InverseProperty("QuizAttempts")]
         public virtual User User { get; set; } = null!;

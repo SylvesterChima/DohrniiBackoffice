@@ -27,7 +27,6 @@ namespace DohrniiBackoffice.Domain.Entities
         public virtual DbSet<Category> Categories { get; set; } = null!;
         public virtual DbSet<Chapter> Chapters { get; set; } = null!;
         public virtual DbSet<ChapterActivity> ChapterActivities { get; set; } = null!;
-        public virtual DbSet<ChapterQuiz> ChapterQuizs { get; set; } = null!;
         public virtual DbSet<ClassQuestion> ClassQuestions { get; set; } = null!;
         public virtual DbSet<ClassQuestionAnswer> ClassQuestionAnswers { get; set; } = null!;
         public virtual DbSet<EarningActivity> EarningActivities { get; set; } = null!;
@@ -38,12 +37,12 @@ namespace DohrniiBackoffice.Domain.Entities
         public virtual DbSet<LessonClass> LessonClasses { get; set; } = null!;
         public virtual DbSet<LessonClassActivity> LessonClassActivities { get; set; } = null!;
         public virtual DbSet<QuestionAttempt> QuestionAttempts { get; set; } = null!;
-        public virtual DbSet<QuizAnswer> QuizAnswers { get; set; } = null!;
         public virtual DbSet<QuizAttempt> QuizAttempts { get; set; } = null!;
         public virtual DbSet<QuizUnlockActivity> QuizUnlockActivities { get; set; } = null!;
         public virtual DbSet<User> Users { get; set; } = null!;
         public virtual DbSet<VEarningActivity> VEarningActivities { get; set; } = null!;
         public virtual DbSet<VFriendRequest> VFriendRequests { get; set; } = null!;
+        public virtual DbSet<VQuestion> VQuestions { get; set; } = null!;
         public virtual DbSet<VWithdrawActivity> VWithdrawActivities { get; set; } = null!;
         public virtual DbSet<WithdrawActivity> WithdrawActivities { get; set; } = null!;
 
@@ -124,15 +123,6 @@ namespace DohrniiBackoffice.Domain.Entities
                     .WithMany(p => p.ChapterActivities)
                     .HasForeignKey(d => d.UserId)
                     .HasConstraintName("FK_ChapterActivity_User");
-            });
-
-            modelBuilder.Entity<ChapterQuiz>(entity =>
-            {
-                entity.HasOne(d => d.Chapter)
-                    .WithMany(p => p.ChapterQuizs)
-                    .HasForeignKey(d => d.ChapterId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ChapterQuiz_Chapter");
             });
 
             modelBuilder.Entity<ClassQuestion>(entity =>
@@ -282,28 +272,19 @@ namespace DohrniiBackoffice.Domain.Entities
                     .HasConstraintName("FK_QuestionAttempt_User");
             });
 
-            modelBuilder.Entity<QuizAnswer>(entity =>
-            {
-                entity.HasOne(d => d.ChapterQuiz)
-                    .WithMany(p => p.QuizAnswers)
-                    .HasForeignKey(d => d.ChapterQuizId)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_QuizAnswer_ChapterQuiz");
-            });
-
             modelBuilder.Entity<QuizAttempt>(entity =>
             {
-                entity.HasOne(d => d.Quiz)
+                entity.HasOne(d => d.Question)
                     .WithMany(p => p.QuizAttempts)
-                    .HasForeignKey(d => d.QuizId)
+                    .HasForeignKey(d => d.QuestionId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_QuizAttempt_ChapterQuiz");
+                    .HasConstraintName("FK_QuizAttempt_ClassQuestion");
 
-                entity.HasOne(d => d.SelectedQuizAnswer)
+                entity.HasOne(d => d.SelectedAnswer)
                     .WithMany(p => p.QuizAttempts)
-                    .HasForeignKey(d => d.SelectedQuizAnswerId)
+                    .HasForeignKey(d => d.SelectedAnswerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_QuizAttempt_QuizAnswer");
+                    .HasConstraintName("FK_QuizAttempt_ClassQuestionAnswer");
 
                 entity.HasOne(d => d.User)
                     .WithMany(p => p.QuizAttempts)
@@ -335,6 +316,11 @@ namespace DohrniiBackoffice.Domain.Entities
             modelBuilder.Entity<VFriendRequest>(entity =>
             {
                 entity.ToView("vFriendRequest");
+            });
+
+            modelBuilder.Entity<VQuestion>(entity =>
+            {
+                entity.ToView("vQuestion");
             });
 
             modelBuilder.Entity<VWithdrawActivity>(entity =>

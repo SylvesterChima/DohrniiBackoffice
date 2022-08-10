@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace DohrniiBackoffice.Domain.Contract
 {
-    public class EFChapterQuizRepository : GenericRepository<ChapterQuiz>, IChapterQuizRepository
+    public class EFvQuestionRepository : GenericRepository<VQuestion>, IvQuestionRepository
     {
-        public EFChapterQuizRepository(DohrniiBackOfficeContext context) : base(context)
+        public EFvQuestionRepository(DohrniiBackOfficeContext context) : base(context)
         {
 
         }

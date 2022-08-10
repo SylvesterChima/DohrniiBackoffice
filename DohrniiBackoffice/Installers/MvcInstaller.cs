@@ -26,7 +26,6 @@ namespace DohrniiBackoffice.Installers
             services.AddScoped<IAspNetUserRepository, EFAspNetUserRepository>();
             services.AddScoped<ICategoryRepository, EFCategoryRepository>();
             services.AddScoped<IChapterRepository, EFChapterRepository>();
-            services.AddScoped<IChapterQuizRepository, EFChapterQuizRepository>();
             services.AddScoped<IClassQuestionAnswerRepository, EFClassQuestionAnswerRepository>();
             services.AddScoped<IClassQuestionRepository, EFClassQuestionRepository>();
             services.AddScoped<IEarningActivityRepository, EFEarningActivityRepository>();
@@ -35,7 +34,6 @@ namespace DohrniiBackoffice.Installers
             services.AddScoped<ILessonClassActivityRepository, EFLessonClassActivityRepository>();
             services.AddScoped<ILessonClassRepository, EFLessonClassRepository>();
             services.AddScoped<ILessonRepository, EFLessonRepository>();
-            services.AddScoped<IQuizAnswerRepository, EFQuizAnswerRepository>();
             services.AddScoped<IUserRepository, EFUserRepository>();
             services.AddScoped<IvEarningActivityRepository, EFvEarningActivityRepository>();
             services.AddScoped<IvFriendRequestRepository, EFvFriendRequestRepository>();
@@ -47,6 +45,7 @@ namespace DohrniiBackoffice.Installers
             services.AddScoped<IChapterActivityRepository, EFChapterActivityRepository>();
             services.AddScoped<IQuizUnlockActivityRepository, EFQuizUnlockActivityRepository>();
             services.AddScoped<IEmailVerificationRepository, EFEmailVerificationRepository>();
+            services.AddScoped<IvQuestionRepository, EFvQuestionRepository>();
 
             var jwtSection = Configuration.GetSection(nameof(JwtSettings));
             services.Configure<JwtSettings>(jwtSection);

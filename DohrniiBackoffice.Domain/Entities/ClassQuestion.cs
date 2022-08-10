@@ -13,6 +13,7 @@ namespace DohrniiBackoffice.Domain.Entities
         {
             ClassQuestionAnswers = new HashSet<ClassQuestionAnswer>();
             QuestionAttempts = new HashSet<QuestionAttempt>();
+            QuizAttempts = new HashSet<QuizAttempt>();
         }
 
         [Key]
@@ -35,5 +36,7 @@ namespace DohrniiBackoffice.Domain.Entities
         public virtual ICollection<ClassQuestionAnswer> ClassQuestionAnswers { get; set; }
         [InverseProperty("Question")]
         public virtual ICollection<QuestionAttempt> QuestionAttempts { get; set; }
+        [InverseProperty("Question")]
+        public virtual ICollection<QuizAttempt> QuizAttempts { get; set; }
     }
 }

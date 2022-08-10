@@ -79,5 +79,18 @@ namespace DohrniiBackoffice.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+        
+        public IActionResult just()
+        {
+            return View();
+        }
+
+        [AllowAnonymous()]
+        public IActionResult privacy()
+        {
+            return View();
+        }
+
+
     }
 }
