@@ -47,6 +47,7 @@ namespace DohrniiBackoffice.Controllers
         }
 
         [HttpPost("start")]
+        [Produces(typeof(StartResponseDTO))]
         public async Task<IActionResult> StartLesson([FromBody] StartDTO dto)
         {
             try
@@ -133,6 +134,7 @@ namespace DohrniiBackoffice.Controllers
         }
 
         [HttpPut("complete")]
+        [Produces(typeof(CompleteResponseDTO))]
         public async Task<IActionResult> CompleteLesson([FromBody] CompleteDTO dto)
         {
             try
